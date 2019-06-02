@@ -1,6 +1,6 @@
 import 'phaser';
 
-export default class Boot extends Phaser.State {
+export class Boot extends Phaser.State {
 
     public preload(): void {
         this.load.image('pic', require('assets/logo.png'));

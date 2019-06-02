@@ -1,6 +1,6 @@
 import 'phaser';
 
-export default class Title extends Phaser.State {
+export class Title extends Phaser.State {
 
     public preload(): void{
         this.load.image('button', require('assets/button_play.png'));

@@ -1,16 +1,13 @@
 import 'phaser';
 
-export default class Game extends Phaser.State {
+export class Game extends Phaser.State {
 
     private cursors;
     private player;
     private facing;
     private jumpTimer = 0;
 
-    public preload(): void {
-        // this.load.spritesheet('player_walk', require('assets/player_walk.png'), 16, 18, 22);
-        this.load.spritesheet('player_anim', require('assets/pj_anim.png'), 16, 16, 38);
-    }
+    public preload(): void {}
     public create(): void {
         // Basic physsics
         this.physics.startSystem(Phaser.Physics.P2JS);
@@ -21,7 +18,7 @@ export default class Game extends Phaser.State {
         // new player
         this.player = this.add.sprite(200, 200, 'player_anim');
         this.player.scale.setTo(3);
-        this.physics.p2.enable([this.player]);
+        this.physics.p2.enable([this.player.sprite]);
         this.player.body.setZeroDamping();
         this.player.body.fixedRotation = true;
 
