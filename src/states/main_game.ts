@@ -113,7 +113,7 @@ export default class MainGame extends Phaser.State {
             if (this.facing === 'left') {
                 this.player.frame = 34;
             }
-            else {
+            else if(this.facing === 'right'){
                 this.player.frame = 27;
             }
         }
