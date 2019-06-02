@@ -5,7 +5,7 @@ export default class MainGame extends Phaser.State {
     private player;
     private cursor;
     private walls;
-
+    private facing;
     preload() {
         this.load.image('s', require('assets/s.png'));
         this.load.image('t', require('assets/t.png'));
@@ -64,26 +64,56 @@ export default class MainGame extends Phaser.State {
                 }
             }
         }
-        
+
         this.walls.scale.setTo(2);
         // Make the player and the walls collide
-        this.physics.arcade.collide(this.player, this.walls);
 
     }
 
     update() {
-
-        if (this.cursor.left.isDown)
+        if (this.cursor.left.isDown) {
             this.player.body.velocity.x = -200;
-        else if (this.cursor.right.isDown)
+
+            if (this.facing !== 'left') {
+                this.player.animations.play('walk_l', 15);
+                this.facing = 'left';
+            }
+        }
+        else if (this.cursor.right.isDown) {
             this.player.body.velocity.x = 200;
-        else
+
+            if (this.facing !== 'right') {
+                this.player.animations.play('walk_r', 15);
+                this.facing = 'right';
+            }
+        }
+        else {
             this.player.body.velocity.x = 0;
 
-        // Make the player jump if he is touching the ground
-        if (this.cursor.up.isDown && this.player.body.touching.down)
+            if (this.facing !== 'idle') {
+                //this.player.animations.stop();
+
+                if (this.facing === 'left') {
+                    this.player.animations.play('iddle_r', 6);
+                    //this.player.frame = 17;
+                }
+                else {
+                    this.player.animations.play('iddle_l', 6);
+                    //this.player.frame = 16;
+                }
+
+                this.facing = 'idle';
+            }
+        }
+        if (this.cursor.up.isDown) {
             this.player.body.velocity.y = -250;
+            // if (this.facing === 'left') {
+            //     this.player.animations.play('jump_l');
+            // } else if (this.facing === 'right') {
+            //     this.player.animations.play('jump_r');
+            // }
+        }
+
+        this.physics.arcade.collide(this.player, this.walls);
     }
-
-
 }
