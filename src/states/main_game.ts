@@ -2,16 +2,23 @@ import 'phaser';
 
 export default class MainGame extends Phaser.State {
 
+
+    //Enemy status
     private player: Phaser.Sprite;
     private cursor: Phaser.CursorKeys;
     private walls: Phaser.Group;
     private facing: 'left' | 'idle' | 'right';
+    private leftWalls;
+    private rightWalls;
+    private enemy;
+    private rightWallHit: boolean = false;
     preload() {
-        this.game.load.image('s', require('assets/s.png'));
-        this.game.load.image('t', require('assets/t.png'));
-        this.game.load.image('l', require('assets/l.png'));
-        this.game.load.image('r', require('assets/r.png'));
-        this.game.load.spritesheet('player', require('assets/pj_anim.png'), 16, 16);
+        this.load.image('s', require('assets/s.png'));
+        this.load.image('t', require('assets/t.png'));
+        this.load.image('l', require('assets/l.png'));
+        this.load.image('r', require('assets/r.png'));
+        this.load.image('enemy', require('assets/enemy.png'));
+        this.load.spritesheet('player', require('assets/pj_anim.png'), 16, 16);
     }
 
     create() {
@@ -32,7 +39,15 @@ export default class MainGame extends Phaser.State {
         this.player.animations.add('jump_l', [31, 32, 33, 34, 35, 36, 37], 7, true);
         this.player.animations.add('fall', [35, 36, 37], 7, false);
 
-        this.walls = this.game.add.group();
+        //Enemy
+        this.enemy = this.game.add.sprite(64, 32, 'enemy');
+        this.enemy.body.gravity.y = 600;
+        this.enemy.smoothed = false;
+        this.player.body.velocity.x = 200;
+
+        this.walls = this.add.group();
+        this.leftWalls = this.add.group();
+        this.rightWalls = this.add.group();
 
         // Design the level. x = wall, o = coin, ! = lava.
         let level = [
@@ -62,13 +77,19 @@ export default class MainGame extends Phaser.State {
                     wall.smoothed = false;
                     wall.scale.setTo(2);
                     wall.body.immovable = true;
-                    this.walls.add(wall);
+                    if (level[i][j] == 't' || level[i][j] == 's') {
+                        this.walls.add(wall);
+                    }
+                    else if (level[i][j] == 'l') {
+                        this.leftWalls.add(wall);
+
+                    }
+                    else if (level[i][j] == 'r') {
+                        this.rightWalls.add(wall);
+                    }
                 }
             }
         }
-
-        // Make the player and the walls collide
-
     }
 
     update() {
@@ -113,10 +134,30 @@ export default class MainGame extends Phaser.State {
             if (this.facing === 'left') {
                 this.player.frame = 34;
             }
-            else if(this.facing === 'right'){
+            else if (this.facing === 'right') {
                 this.player.frame = 27;
             }
         }
+        this.physics.arcade.collide(this.player, this.walls);
+        this.physics.arcade.collide(this.player, this.leftWalls);
+        this.physics.arcade.collide(this.player, this.rightWalls);
+
+        this.physics.arcade.collide(this.enemy, this.walls);
+
+        if (!this.rightWallHit) {
+            this.enemy.body.velocity.x = 200;
+        }
+        else {
+            this.enemy.body.velocity.x = -200;
+
+        }
+
+        this.physics.arcade.collide(this.enemy, this.rightWalls, () => {
+            this.rightWallHit = true;
+        });
+        this.physics.arcade.collide(this.enemy, this.leftWalls, () => {
+            this.rightWallHit = false;
+        });
 
     }
 
@@ -133,4 +174,20 @@ export default class MainGame extends Phaser.State {
     checkIfCanJump(): boolean {
         return true;
     }
+
+    // render() {
+    //     this.game.debug.body(this.player);
+    //     this.game.debug.body(this.enemy);
+
+    //     this.walls.forEachAlive((member) => {
+    //         this.game.debug.body(member);
+    //     });
+    //     this.rightWalls.forEachAlive((member) => {
+    //         this.game.debug.body(member);
+    //     });
+    //     this.leftWalls.forEachAlive((member) => {
+    //         this.game.debug.body(member);
+    //     });
+    //     this.game.debug.body(this.walls);
+    // }
 }
