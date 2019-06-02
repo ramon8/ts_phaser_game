@@ -30,6 +30,7 @@ export default class MainGame extends Phaser.State {
         this.player.animations.add('walk_l', [16, 17, 18, 19, 20, 21, 22, 23], 8, true);
         this.player.animations.add('jump_r', [24, 25, 26, 27, 28, 29, 30], 7, true);
         this.player.animations.add('jump_l', [31, 32, 33, 34, 35, 36, 37], 7, true);
+        this.player.animations.add('fall', [35, 36, 37], 7, false);
 
         this.walls = this.game.add.group();
 
@@ -107,6 +108,14 @@ export default class MainGame extends Phaser.State {
             // } else if (this.facing === 'right') {
             //     this.player.animations.play('jump_r');
             // }
+        }
+        if (!this.player.body.touching.down) {
+            if (this.facing === 'left') {
+                this.player.frame = 34;
+            }
+            else {
+                this.player.frame = 27;
+            }
         }
 
     }
