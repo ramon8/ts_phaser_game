@@ -3,7 +3,7 @@ import { Utils } from './../../utils/utils';
 export class Player {
 
     /** The default gravity on the 'y' axis */
-    private GRAVITY: number = 600;
+    private GRAVITY: number = 1000;
     /** The default sprite velocity */
     private velocity: number = 200;
     private jump_vel: number = 350;
@@ -66,8 +66,6 @@ export class Player {
 
     /** Here you load al assets need for the player class */
     private loadAssets() {
-        console.log('assets/s.png');
-        console.log(this.ASSETS_PATH + this.PLAYER_ANIM_FILE);
         this.game.load.spritesheet('player', require('assets/pj_anim.png'), this.TILE_X_SIZE, this.TILE_Y_SIZE);
     }
 
@@ -91,6 +89,7 @@ export class Player {
         this.sprite.scale.setTo(scale.x, scale.y);
         this.sprite.smoothed = smoothed || false;
         this.sprite.body.gravity.y = gravity || this.GRAVITY;
+        this.sprite.anchor.setTo(0, 0);
     }
 
     /** Seter for all the animations tha player require */
