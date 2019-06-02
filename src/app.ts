@@ -11,5 +11,6 @@ window.onload = () => {
     game.state.add('boot', Boot);
     game.state.add('title', Title);
     game.state.add('game', Game);
-    game.state.start('game');
+    
+    game.state.start('boot');
 };

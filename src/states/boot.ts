@@ -1,6 +1,7 @@
 import 'phaser';
 
 export default class Boot extends Phaser.State {
+
     public preload(): void {
         this.load.image('pic', require('assets/logo.png'));
     }
@@ -18,3 +19,5 @@ export default class Boot extends Phaser.State {
         }, this);
     }
 }
+
+
