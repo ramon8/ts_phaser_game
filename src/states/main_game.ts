@@ -135,6 +135,9 @@ export default class MainGame extends Phaser.State {
             // }
         }
         this.physics.arcade.collide(this.player, this.walls);
+        this.physics.arcade.collide(this.player, this.leftWalls);
+        this.physics.arcade.collide(this.player, this.rightWalls);
+
         this.physics.arcade.collide(this.enemy, this.walls);
 
         if(!this.rightWallHit){
@@ -153,19 +156,19 @@ export default class MainGame extends Phaser.State {
         });
     }
 
-    render() {
-        this.game.debug.body(this.player);
-        this.game.debug.body(this.enemy);
+    // render() {
+    //     this.game.debug.body(this.player);
+    //     this.game.debug.body(this.enemy);
 
-        this.walls.forEachAlive((member) => {
-            this.game.debug.body(member);
-        });
-        this.rightWalls.forEachAlive((member) => {
-            this.game.debug.body(member);
-        });
-        this.leftWalls.forEachAlive((member) => {
-            this.game.debug.body(member);
-        });
-        this.game.debug.body(this.walls);
-    }
+    //     this.walls.forEachAlive((member) => {
+    //         this.game.debug.body(member);
+    //     });
+    //     this.rightWalls.forEachAlive((member) => {
+    //         this.game.debug.body(member);
+    //     });
+    //     this.leftWalls.forEachAlive((member) => {
+    //         this.game.debug.body(member);
+    //     });
+    //     this.game.debug.body(this.walls);
+    // }
 }
