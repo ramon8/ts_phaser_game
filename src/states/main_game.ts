@@ -22,7 +22,7 @@ export default class MainGame extends Phaser.State {
         this.player.scale.setTo(2);
         this.player.smoothed = false;
 
-        this.player.body.gravity.y = 600;
+        this.player.body.gravity.y = 20;
 
         this.player.animations.add('iddle_l', [0, 1, 2, 3], 4, true);
         this.player.animations.add('iddle_r', [4, 5, 6, 7], 4, true);
@@ -57,15 +57,15 @@ export default class MainGame extends Phaser.State {
         for (var i = 0; i < level.length; i++) {
             for (var j = 0; j < level[i].length; j++) {
                 if (level[i][j] != ' ') {
-                    var wall = this.add.sprite(16 * j, 16 * i, level[i][j]);
+                    var wall = this.add.sprite(32 * j, 32 * i, level[i][j]);
                     wall.smoothed = false;
+                    wall.scale.setTo(2);
                     wall.body.immovable = true;
                     this.walls.add(wall);
                 }
             }
         }
 
-        this.walls.scale.setTo(2);
         // Make the player and the walls collide
 
     }
@@ -89,19 +89,13 @@ export default class MainGame extends Phaser.State {
         }
         else {
             this.player.body.velocity.x = 0;
-
             if (this.facing !== 'idle') {
-                //this.player.animations.stop();
-
                 if (this.facing === 'left') {
                     this.player.animations.play('iddle_r', 6);
-                    //this.player.frame = 17;
                 }
                 else {
                     this.player.animations.play('iddle_l', 6);
-                    //this.player.frame = 16;
                 }
-
                 this.facing = 'idle';
             }
         }
@@ -115,5 +109,19 @@ export default class MainGame extends Phaser.State {
         }
 
         this.physics.arcade.collide(this.player, this.walls);
+    }
+
+    render() {
+        this.game.debug.body(this.player);
+        this.walls.forEachAlive((member) => {
+            this.game.debug.body(member);
+        });
+        // this.game.debug.body(this.walls);
+        // this.game.debug.text(this.cursor.up.isDown, 0, 380);
+        // this.game.debug.text(this.player.body.touching.down, 100, 380);
+    }
+
+    checkIfCanJump(): boolean {
+        return true;
     }
 }
