@@ -2,27 +2,27 @@ import 'phaser';
 
 export default class MainGame extends Phaser.State {
 
-    private player;
-    private cursor;
-    private walls;
-    private facing;
+    private player: Phaser.Sprite;
+    private cursor: Phaser.CursorKeys;
+    private walls: Phaser.Group;
+    private facing: 'left' | 'idle' | 'right';
     preload() {
-        this.load.image('s', require('assets/s.png'));
-        this.load.image('t', require('assets/t.png'));
-        this.load.image('l', require('assets/l.png'));
-        this.load.image('r', require('assets/r.png'));
-        this.load.spritesheet('player', require('assets/pj_anim.png'), 16, 16);
+        this.game.load.image('s', require('assets/s.png'));
+        this.game.load.image('t', require('assets/t.png'));
+        this.game.load.image('l', require('assets/l.png'));
+        this.game.load.image('r', require('assets/r.png'));
+        this.game.load.spritesheet('player', require('assets/pj_anim.png'), 16, 16);
     }
 
     create() {
-        this.physics.startSystem(Phaser.Physics.ARCADE);
-        this.world.enableBody = true;
+        this.game.physics.startSystem(Phaser.Physics.ARCADE);
+        this.game.world.enableBody = true;
         this.cursor = this.input.keyboard.createCursorKeys();
         this.player = this.game.add.sprite(32, 32, 'player');
         this.player.scale.setTo(2);
         this.player.smoothed = false;
 
-        this.player.body.gravity.y = 20;
+        this.player.body.gravity.y = 800;
 
         this.player.animations.add('iddle_l', [0, 1, 2, 3], 4, true);
         this.player.animations.add('iddle_r', [4, 5, 6, 7], 4, true);
@@ -31,10 +31,10 @@ export default class MainGame extends Phaser.State {
         this.player.animations.add('jump_r', [24, 25, 26, 27, 28, 29, 30], 7, true);
         this.player.animations.add('jump_l', [31, 32, 33, 34, 35, 36, 37], 7, true);
 
-        this.walls = this.add.group();
+        this.walls = this.game.add.group();
 
         // Design the level. x = wall, o = coin, ! = lava.
-        var level = [
+        let level = [
             ' ttttttttttttttt ',
             'l               r',
             'l               r',
@@ -54,10 +54,10 @@ export default class MainGame extends Phaser.State {
             ' sssssssssssssss ',
         ];
 
-        for (var i = 0; i < level.length; i++) {
-            for (var j = 0; j < level[i].length; j++) {
-                if (level[i][j] != ' ') {
-                    var wall = this.add.sprite(32 * j, 32 * i, level[i][j]);
+        for (let i = 0; i < level.length; i++) {
+            for (let j = 0; j < level[i].length; j++) {
+                if (level[i][j] !== ' ') {
+                    let wall = this.game.add.sprite(32 * j, 32 * i, level[i][j]);
                     wall.smoothed = false;
                     wall.scale.setTo(2);
                     wall.body.immovable = true;
@@ -71,6 +71,7 @@ export default class MainGame extends Phaser.State {
     }
 
     update() {
+        this.game.physics.arcade.collide(this.player, this.walls);
         if (this.cursor.left.isDown) {
             this.player.body.velocity.x = -200;
 
@@ -99,7 +100,7 @@ export default class MainGame extends Phaser.State {
                 this.facing = 'idle';
             }
         }
-        if (this.cursor.up.isDown) {
+        if (this.cursor.up.isDown && this.player.body.touching.down) {
             this.player.body.velocity.y = -250;
             // if (this.facing === 'left') {
             //     this.player.animations.play('jump_l');
@@ -108,14 +109,13 @@ export default class MainGame extends Phaser.State {
             // }
         }
 
-        this.physics.arcade.collide(this.player, this.walls);
     }
 
     render() {
-        this.game.debug.body(this.player);
-        this.walls.forEachAlive((member) => {
-            this.game.debug.body(member);
-        });
+        // this.game.debug.body(this.player);
+        // this.walls.forEachAlive((member) => {
+        //     this.game.debug.body(member);
+        // });
         // this.game.debug.body(this.walls);
         // this.game.debug.text(this.cursor.up.isDown, 0, 380);
         // this.game.debug.text(this.player.body.touching.down, 100, 380);
