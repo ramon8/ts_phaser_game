@@ -5,8 +5,11 @@ export class Player {
     /** The default gravity on the 'y' axis */
     private GRAVITY: number = 1000;
     /** The default sprite velocity */
-    private velocity: number = 200;
-    private jump_vel: number = 350;
+    private velocity: number = 150;
+    private jump_vel: number = 400;
+    private jumping: boolean = false;
+    private force: number = 0;
+    public first_jump: boolean;
 
     /** Duration in millisecons between fotogramas */
     private ANIMATION_MILLISECONDS_WALK: 15;
@@ -24,16 +27,12 @@ export class Player {
 
     /** All the animations of the player */
     private ANIMATIONS: { name: string, frames: number[], maxFrames: number, isLoop: boolean }[] = [
-        { name: 'iddle_l', frames: [0, 1, 2, 3], maxFrames: 4, isLoop: true },
-        { name: 'iddle_r', frames: [4, 5, 6, 7], maxFrames: 4, isLoop: true },
-        { name: 'walk_r', frames: [8, 9, 10, 11, 12, 13, 14, 15], maxFrames: 8, isLoop: true },
-        { name: 'walk_l', frames: [16, 17, 18, 19, 20, 21, 22, 23], maxFrames: 8, isLoop: true },
-        { name: 'jump_r', frames: [24, 25, 26, 27, 28, 29, 30], maxFrames: 7, isLoop: true },
-        { name: 'jump_l', frames: [31, 32, 33, 34, 35, 36, 37], maxFrames: 7, isLoop: true },
-        { name: 'fall', frames: [35, 36, 37], maxFrames: 7, isLoop: false }
+        { name: 'iddle', frames: [0, 1, 2, 3], maxFrames: 4, isLoop: true },
+        { name: 'walk', frames: [4, 5, 6, 7, 8, 9, 10, 11], maxFrames: 8, isLoop: true },
+        { name: 'fall', frames: [13, 14, 15, 16, 17, 18], maxFrames: 6, isLoop: false },
     ]
     /** The direction where the player is facing */
-    private facing: 'idle' | 'left' | 'right';
+    private facing: 'left' | 'right' = 'right';
 
     constructor(
         /** The current instance of the Phaser.Game */
@@ -42,7 +41,7 @@ export class Player {
         public sprite?: Phaser.Sprite,
         /** The current instance of the Phaser.CursorKeys */
         public cursors?: Phaser.CursorKeys,
-        public debug?: boolean
+        public debug?: boolean,
     ) { }
 
     public preload() {
@@ -61,12 +60,13 @@ export class Player {
     public render() {
         if (this.debug) {
             this.game.debug.body(this.sprite);
+            this.game.debug.text('velocity x:' + this.sprite.body.velocity, 40, 60);
         }
     }
 
     /** Here you load al assets need for the player class */
     private loadAssets() {
-        this.game.load.spritesheet('player', require('assets/pj_anim.png'), this.TILE_X_SIZE, this.TILE_Y_SIZE);
+        this.game.load.spritesheet('player', require('./assets/player.png'), this.TILE_X_SIZE, this.TILE_Y_SIZE);
     }
 
     public createNewPlayer(sprite: Phaser.Sprite, cursors: Phaser.CursorKeys) {
@@ -89,7 +89,9 @@ export class Player {
         this.sprite.scale.setTo(scale.x, scale.y);
         this.sprite.smoothed = smoothed || false;
         this.sprite.body.gravity.y = gravity || this.GRAVITY;
-        this.sprite.anchor.setTo(0, 0);
+        this.sprite.anchor.setTo(.5, .5);
+
+        this.sprite.body.setSize(12, 15, 2, 1);
     }
 
     /** Seter for all the animations tha player require */
@@ -105,46 +107,93 @@ export class Player {
 
     private updateMovment() {
         if (this.cursors.left.isDown) {
-            this.sprite.body.velocity.x = this.velocity * -1;
-            if (this.facing !== 'left') {
-                this.playAnimation('walk_l');
+            if (this.facing === 'right') {
                 this.facing = 'left';
+                this.sprite.scale.x *= -1;
             }
-        }
-        else if (this.cursors.right.isDown) {
-            this.sprite.body.velocity.x = this.velocity;
-            if (this.facing !== 'right') {
-                this.playAnimation('walk_r');
-                this.facing = 'right';
+            this.moveLeft();
+            if (this.first_jump === null) {
+                this.first_jump = false;
             }
-        }
-        else {
-            this.sprite.body.velocity.x = 0;
-            if (this.facing !== 'idle') {
-                if (this.facing === 'left') this.playAnimation('iddle_r', this.ANIMATION_MILLISECONDS_IDLE);
-                else this.playAnimation('iddle_l', this.ANIMATION_MILLISECONDS_IDLE);
-                this.facing = 'idle';
-            }
-        }
-        if (this.canJump()) {
-            this.sprite.body.velocity.y = this.jump_vel * -1;
-        }
-        if (!this.sprite.body.touching.down) {
+        } else if (this.cursors.right.isDown) {
             if (this.facing === 'left') {
-                this.sprite.frame = 34;
+                this.facing = 'right';
+                this.sprite.scale.x *= -1;
             }
-            else if (this.facing === 'right') {
-                this.sprite.frame = 27;
+            this.moveRight();
+            if (this.first_jump === null) {
+                this.first_jump = false;
+            }
+        }
+        if (!this.cursors.right.isDown && !this.cursors.left.isDown) {
+            this.stopPlayer();
+        }
+        if (this.isFalling()) {
+            this.playAnimation('fall', 10, false);
+            if (!this.first_jump) {
+                // this.sprite.angle += 25;
+            }
+        } else {
+            if (this.cursors.up.isDown && this.canJump()) {
+                if (this.first_jump === false) {
+                    // this.sprite.angle += 25;
+                }
+                this.jump();
+                this.force = this.jump_vel + 50;
+                if (this.first_jump === null) {
+                    this.first_jump = true;
+                }
+            } else if (this.cursors.up.isDown && this.force > 0 && this.jumping) {
+                if (this.first_jump === false) {
+                    // this.sprite.angle += 25;
+                }
+                if (this.first_jump === null) {
+                    this.first_jump = true;
+                }
+                this.sprite.frame = 12;
+                this.sprite.body.velocity.y -= 25;
+                this.force -= 25;
+            } else if (!this.cursors.up.isDown || this.force <= 0) {
+                this.jumping = false;
+            }
+            if (this.sprite.body.velocity.x != 0) {
+                this.playAnimation('walk');
+            } else {
+                this.playAnimation('iddle');
             }
         }
     }
 
     /** return true if the player can jump */
     private canJump(): boolean {
-        return (this.cursors.up.isDown && this.sprite.body.touching.down);
+        return (this.sprite.body.touching.down);
     }
 
-    private playAnimation(name: string, milliseconds?: number): void {
-        Utils.playAnimation(this.sprite, name, milliseconds || this.ANIMATION_MILLISECONDS_WALK);
+    private playAnimation(name: string, milliseconds?: number, loop?: boolean): void {
+        Utils.playAnimation(this.sprite, name, milliseconds || this.ANIMATION_MILLISECONDS_WALK, loop);
+    }
+
+    private stopPlayer(): void {
+        this.sprite.body.velocity.x = 0;
+        // this.playAnimation('iddle', this.ANIMATION_MILLISECONDS_IDLE);
+    }
+
+    private moveLeft(vel?: number): void {
+        this.sprite.body.velocity.x = (vel || this.velocity) * -1;
+        // this.playAnimation('walk');
+    }
+
+    private moveRight(vel?: number): void {
+        this.sprite.body.velocity.x = vel || this.velocity;
+        // this.playAnimation('walk');
+    }
+
+    private jump(heihgt?: number): void {
+        this.sprite.body.velocity.y = (heihgt || this.jump_vel) * -1;
+        // this.playAnimation('jump_l', undefined, false);
+    }
+
+    private isFalling(): boolean {
+        return this.sprite.body.velocity.y > 0;
     }
 }

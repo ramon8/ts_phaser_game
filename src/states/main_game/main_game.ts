@@ -5,7 +5,7 @@ export class MainGame extends Phaser.State {
 
     //Enemy status
     private cursor: Phaser.CursorKeys;
-    private player: Player = new Player(this.game, null, null, true);
+    private player: Player;
 
     private walls: Phaser.Group;
     private leftWalls;
@@ -14,7 +14,7 @@ export class MainGame extends Phaser.State {
     private rightWallHit: boolean = false;
 
     preload() {
-        this.player = new Player(this.game);
+        this.player = new Player(this.game, null, null, false);
         this.load.image('s', require('assets/s.png'));
         this.load.image('t', require('assets/t.png'));
         this.load.image('l', require('assets/l.png'));
@@ -29,7 +29,7 @@ export class MainGame extends Phaser.State {
         this.game.world.enableBody = true;
         this.cursor = this.input.keyboard.createCursorKeys();
 
-        this.player.createNewPlayer(this.game.add.sprite(32, 32, 'player'), this.cursor);
+        this.player.createNewPlayer(this.game.add.sprite(300, 100, 'player'), this.cursor);
 
         //Enemy
         this.enemy = this.game.add.sprite(64, 32, 'enemy');
@@ -46,6 +46,8 @@ export class MainGame extends Phaser.State {
         this.leftWalls = this.add.group();
         this.rightWalls = this.add.group();
 
+        this.game.camera.follow(this.player.sprite);
+
         // Design the level. x = wall, o = coin, ! = lava.
         let level = [
             ' ttttttttttttttt ',
@@ -54,6 +56,39 @@ export class MainGame extends Phaser.State {
             'l           ssss ',
             'l                ',
             'l       ss      r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l               r',
+            'l    sss        r',
+            'l               r',
+            'l          sss  r',
+            'l               r',
+            'l   ssssss      r',
+            'l               r',
+            'l            sss ',
+            'l            r   ',
             ' ss             r',
             '                r',
             'l    sss        r',
@@ -90,10 +125,15 @@ export class MainGame extends Phaser.State {
     }
 
     update() {
-        this.game.physics.arcade.collide(this.player.sprite, this.walls);
+        this.game.physics.arcade.collide(this.player.sprite, this.walls, ()=>{
+            this.player.sprite.angle = 0;
+            this.player.first_jump = null;
+        });
         this.player.update();
         this.physics.arcade.collide(this.player.sprite, this.leftWalls);
         this.physics.arcade.collide(this.player.sprite, this.rightWalls);
+
+        this.game.world.setBounds(0, 0, 544, 544 * 5);
 
         this.physics.arcade.collide(this.enemy, this.walls);
 
@@ -113,7 +153,7 @@ export class MainGame extends Phaser.State {
                 sprite.body.velocity.x = 0;
                 sprite.frame = 0;
 
-                this.game.time.events.add(Phaser.Timer.SECOND * 2, ()=>{
+                this.game.time.events.add(Phaser.Timer.SECOND * 2, () => {
                     this.game.state.start('MainGame');
                 }, this);
 
@@ -132,7 +172,9 @@ export class MainGame extends Phaser.State {
     }
 
     render() {
-        // this.player.render();
+        this.player.render();
+
+        // this.game.debug.cameraInfo(this.game.camera, 200, 200);
         // this.game.debug.body(this.player.sprite);
         // this.game.debug.body(this.enemy);
         // this.game.debug.text(this.player.sprite.body.y + ' :player', 40, 50);
