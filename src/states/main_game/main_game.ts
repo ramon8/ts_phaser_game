@@ -28,79 +28,26 @@ export class MainGame extends Phaser.State {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.game.world.enableBody = true;
         this.cursor = this.input.keyboard.createCursorKeys();
-
-        this.player.createNewPlayer(this.game.add.sprite(300, 100, 'player'), this.cursor);
-
-        //Enemy
-        this.enemy = this.game.add.sprite(64, 32, 'enemy');
-        this.enemy.body.gravity.y = 1000;
-        this.enemy.smoothed = false;
-        this.enemy.scale.setTo(2);
-        this.enemy.body.setSize(16, 10, 0, 6);
-        this.enemy.anchor.setTo(0, 0);
-
-        this.enemy.animations.add('walk_l', [0, 1, 2, 3, 4, 5], 6, true);
-        this.enemy.animations.add('walk_r', [6, 7, 8, 9, 10, 11], 6, true);
+        let level = [
+            '                                                   ',
+            '                                                   ',
+            '                                                   ',
+            ' ttttttttttttttttttttttttttttttttttttttttttttttttt ',
+            'l                                                 r',
+            'l                                                 r',
+            'l                                                 r',
+            ' sssss                                            r',
+            '        ss  ss  ss  ss  ss   ss   ss   ss   s     r',
+            '     l                                            r',
+            '     l                sssss                       r',
+            '     l                                            r',
+            '     l                                            r',
+            '      ssssssssssssssssssssssssssssssssssssssssssss ',
+        ];
 
         this.walls = this.add.group();
         this.leftWalls = this.add.group();
         this.rightWalls = this.add.group();
-
-        this.game.camera.follow(this.player.sprite);
-
-        // Design the level. x = wall, o = coin, ! = lava.
-        let level = [
-            ' ttttttttttttttt ',
-            'l               r',
-            'l               r',
-            'l           ssss ',
-            'l                ',
-            'l       ss      r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l               r',
-            'l    sss        r',
-            'l               r',
-            'l          sss  r',
-            'l               r',
-            'l   ssssss      r',
-            'l               r',
-            'l            sss ',
-            'l            r   ',
-            ' ss             r',
-            '                r',
-            'l    sss        r',
-            'l               r',
-            'l          sss  r',
-            'l               r',
-            'l   ssssss      r',
-            'l               r',
-            'l            sss ',
-            'l            r   ',
-            ' ssssssssssss    ',
-        ];
 
         for (let i = 0; i < level.length; i++) {
             for (let j = 0; j < level[i].length; j++) {
@@ -114,7 +61,6 @@ export class MainGame extends Phaser.State {
                     }
                     else if (level[i][j] == 'l') {
                         this.leftWalls.add(wall);
-
                     }
                     else if (level[i][j] == 'r') {
                         this.rightWalls.add(wall);
@@ -122,18 +68,35 @@ export class MainGame extends Phaser.State {
                 }
             }
         }
+        this.player.createNewPlayer(this.game.add.sprite(64 , 200, 'player'), this.cursor);
+
+
+        //Enemy
+        this.enemy = this.game.add.sprite(64, 32, 'enemy');
+        this.enemy.body.gravity.y = 1000;
+        this.enemy.smoothed = false;
+        this.enemy.scale.setTo(2);
+        this.enemy.body.setSize(16, 10, 0, 6);
+        this.enemy.anchor.setTo(0, 0);
+        this.game.world.setBounds(0, 0, 544 * 3, 544);
+
+        this.enemy.animations.add('walk_l', [0, 1, 2, 3, 4, 5], 6, true);
+        this.enemy.animations.add('walk_r', [6, 7, 8, 9, 10, 11], 6, true);
+
+
+        this.game.camera.follow(this.player.sprite);
+
+        // Design the level. x = wall, o = coin, ! = lava.
+
     }
 
     update() {
-        this.game.physics.arcade.collide(this.player.sprite, this.walls, ()=>{
-            this.player.sprite.angle = 0;
-            this.player.first_jump = null;
+        this.game.physics.arcade.collide(this.player.sprite, this.walls, () => {
+            this.player.collideWallHandler();
         });
         this.player.update();
         this.physics.arcade.collide(this.player.sprite, this.leftWalls);
         this.physics.arcade.collide(this.player.sprite, this.rightWalls);
-
-        this.game.world.setBounds(0, 0, 544, 544 * 5);
 
         this.physics.arcade.collide(this.enemy, this.walls);
 
