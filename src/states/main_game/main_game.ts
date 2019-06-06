@@ -1,74 +1,41 @@
 import 'phaser';
 import { Player } from './../../types';
+import { LevelCreator } from './../../models';
 
 export class MainGame extends Phaser.State {
 
     //Enemy status
     private cursor: Phaser.CursorKeys;
     private player: Player;
+    private levelCreator: LevelCreator;
 
-    private walls: Phaser.Group;
-    private leftWalls;
-    private rightWalls;
     private enemy;
     private rightWallHit: boolean = false;
 
     preload() {
+        this.levelCreator = new LevelCreator(this.game);
         this.player = new Player(this.game, null, null, false);
-        this.load.image('s', require('assets/s.png'));
-        this.load.image('t', require('assets/t.png'));
-        this.load.image('l', require('assets/l.png'));
-        this.load.image('r', require('assets/r.png'));
+
+
         //this.load.image('enemy', require('assets/enemy.png'));
         this.load.spritesheet('enemy', require('assets/enemy.png'), 16, 16);
         this.player.preload();
+        this.levelCreator.preload();
     }
 
     create() {
         this.game.physics.startSystem(Phaser.Physics.ARCADE);
         this.game.world.enableBody = true;
         this.cursor = this.input.keyboard.createCursorKeys();
-        let level = [
-            '                                                   ',
-            '                                                   ',
-            '                                                   ',
-            ' ttttttttttttttttttttttttttttttttttttttttttttttttt ',
-            'l                                                 r',
-            'l                                                 r',
-            'l                                                 r',
-            ' sssss                                            r',
-            '        ss  ss  ss  ss  ss   ss   ss   ss   s     r',
-            '     l                                            r',
-            '     l                sssss                       r',
-            '     l                                            r',
-            '     l                                            r',
-            '      ssssssssssssssssssssssssssssssssssssssssssss ',
-        ];
 
-        this.walls = this.add.group();
-        this.leftWalls = this.add.group();
-        this.rightWalls = this.add.group();
+        this.levelCreator.create();
 
-        for (let i = 0; i < level.length; i++) {
-            for (let j = 0; j < level[i].length; j++) {
-                if (level[i][j] !== ' ') {
-                    let wall = this.game.add.sprite(32 * j, 32 * i, level[i][j]);
-                    wall.smoothed = false;
-                    wall.scale.setTo(2);
-                    wall.body.immovable = true;
-                    if (level[i][j] == 't' || level[i][j] == 's') {
-                        this.walls.add(wall);
-                    }
-                    else if (level[i][j] == 'l') {
-                        this.leftWalls.add(wall);
-                    }
-                    else if (level[i][j] == 'r') {
-                        this.rightWalls.add(wall);
-                    }
-                }
-            }
-        }
-        this.player.createNewPlayer(this.game.add.sprite(64 , 200, 'player'), this.cursor);
+
+        this.game.world.setBounds(0, 0, this.levelCreator.level[0].length * 32, this.levelCreator.level.length * 32);
+
+        ;
+
+        this.player.createNewPlayer(this.game.add.sprite(300, 200, 'player'), this.cursor);
 
 
         //Enemy
@@ -78,32 +45,28 @@ export class MainGame extends Phaser.State {
         this.enemy.scale.setTo(2);
         this.enemy.body.setSize(16, 10, 0, 6);
         this.enemy.anchor.setTo(0, 0);
-        this.game.world.setBounds(0, 0, 544 * 3, 544);
 
         this.enemy.animations.add('walk_l', [0, 1, 2, 3, 4, 5], 6, true);
         this.enemy.animations.add('walk_r', [6, 7, 8, 9, 10, 11], 6, true);
 
 
         this.game.camera.follow(this.player.sprite);
-
-        // Design the level. x = wall, o = coin, ! = lava.
-
     }
 
     update() {
-        this.game.physics.arcade.collide(this.player.sprite, this.walls, () => {
+        this.game.physics.arcade.collide(this.player.sprite, this.levelCreator.walls, () => {
             this.player.collideWallHandler();
         });
         this.player.update();
-        this.physics.arcade.collide(this.player.sprite, this.leftWalls);
-        this.physics.arcade.collide(this.player.sprite, this.rightWalls);
+        this.physics.arcade.collide(this.player.sprite, this.levelCreator.leftWalls);
+        this.physics.arcade.collide(this.player.sprite, this.levelCreator.rightWalls);
 
-        this.physics.arcade.collide(this.enemy, this.walls);
+        this.physics.arcade.collide(this.enemy, this.levelCreator.walls);
 
-        this.physics.arcade.collide(this.enemy, this.rightWalls, () => {
+        this.physics.arcade.collide(this.enemy, this.levelCreator.rightWalls, () => {
             this.rightWallHit = true;
         });
-        this.physics.arcade.collide(this.enemy, this.leftWalls, () => {
+        this.physics.arcade.collide(this.enemy, this.levelCreator.leftWalls, () => {
             this.rightWallHit = false;
         });
         this.physics.arcade.collide(this.enemy, this.player.sprite, () => { }, (enemy, sprite) => {

@@ -4,30 +4,24 @@ import { Game } from '../../states';
 export class Player {
 
     /** The default gravity on the 'y' axis */
-    private GRAVITY: number = 1000;
+    private gravity: number = 1000;
     /** The default sprite velocity */
     private velocity: number = 200;
     private jump_vel: number = 450;
-    private jumping: boolean = false;
-    private force: number = 0;
     private isDown: boolean = false;
 
-    /** Duration in millisecons between fotogramas */
-    private ANIMATION_MILLISECONDS_WALK: 0;
-    private ANIMATION_MILLISECONDS_IDLE: 6;
+    private ammo: number = 8;
+
+    private jumpTimer: number = 0.1;
+
+    private text;
 
     private SPIN_FRAME: number = 19;
-    private FLIP_FRAME: number = 20;
 
     /**Default 'x' axis tile size */
     private TILE_X_SIZE: number = 16;
     /**Default 'y' axis tile size */
     private TILE_Y_SIZE: number = this.TILE_X_SIZE;
-
-    /** Relative path to the player assets directory */
-    private ASSETS_PATH: string = 'assets/s.png';
-    /** Player animation file name */
-    private PLAYER_ANIM_FILE: string = 's.png';
 
     private SPIN_ROTATION: number = 15;
 
@@ -74,7 +68,7 @@ export class Player {
     }
 
     public render() {
-        if (true) {
+        if (this.debug) {
             this.game.debug.body(this.sprite);
             // this.game.debug.body(this.splash_down);
             this.game.debug.text('r:' + this.sprite.body.touching.right, 40, 60);
@@ -108,6 +102,14 @@ export class Player {
         this.sprite = sprite;
         this.cursors = cursors;
         this.create();
+        var style = { font: "10px", fill: "#ffffff", align: "center" };
+        this.text = this.game.add.text(0, 0, "Player: " + this.ammo, style);
+    }
+
+    afegirText(x, y){
+        this.text.x = x;
+        this.text.y = y - 15;
+        this.text.text = 'Player: ' + this.ammo;
     }
 
     /**
@@ -123,7 +125,7 @@ export class Player {
     ) {
         this.sprite.scale.setTo(scale.x, scale.y);
         this.sprite.smoothed = smoothed || false;
-        this.sprite.body.gravity.y = gravity || this.GRAVITY;
+        this.sprite.body.gravity.y = gravity || this.gravity;
         this.sprite.anchor.setTo(.5, .5);
 
         this.sprite.body.setSize(12, 15, 2, 1);
@@ -139,61 +141,7 @@ export class Player {
                 animation.isLoop);
         });
     }
-    /*
-        private updateMovement() {
-            if (this.cursors.left.isDown) {
-                if (this.facing === 'right') {
-                    this.facing = 'left';
-                    this.sprite.scale.x *= -1;
-                }
-                this.moveLeft();
-                if (this.first_jump === null) {
-                    this.first_jump = false;
-                }
-            } else if (this.cursors.right.isDown) {
-                if (this.facing === 'left') {
-                    this.facing = 'right';
-                    this.sprite.scale.x *= -1;
-                }
-                this.moveRight();
-            }
-            if (!this.cursors.right.isDown && !this.cursors.left.isDown) {
-                this.stopPlayer();
-            }
-            if (this.isFalling()) {
-                this.playAnimation('fall', 10, false);
-                if (!this.first_jump) {
-                    // this.sprite.angle += 25;
-                }
-            } else {
-                if (this.cursors.up.isDown && this.canJump()) {
-                    if (this.first_jump === false) {
-                        // this.sprite.angle += 25;
-                    }
-                    this.jump();
-                    this.force = this.jump_vel + 50;
-                } else if (this.cursors.up.isDown && this.force > 0 && this.jumping) {
-                    if (this.first_jump === false) {
-                        // this.sprite.angle += 25;
-                    }
-                    if (this.first_jump === null) {
-                        this.first_jump = true;
-                    }
-                    this.sprite.frame = 12;
-                    this.sprite.body.velocity.y -= 25;
-                    this.force -= 25;
-                } else if (!this.cursors.up.isDown || this.force <= 0) {
-                    this.jumping = false;
-                }
-                if (this.sprite.body.velocity.x != 0) {
-                    this.playAnimation('walk');
-                } else {
-                    this.playAnimation('idle');
-                }
-            }
-        }
-    */
-
+    
     private updateMovement() {
         this.spinPlayer();
         this.checkIfJump();
@@ -230,7 +178,7 @@ export class Player {
                 }
             }
         }
-
+        this.afegirText(this.sprite.body.x, this.sprite.body.y);
         this.generalChecks();
     }
 
@@ -242,7 +190,7 @@ export class Player {
 
     /** return true if the player can jump */
     private canJump(): boolean {
-        return (this.sprite.body.touching.down);
+        return ((this.sprite.body.touching.down || this.ammo != 0) && this.game.time.totalElapsedSeconds() > this.jumpTimer);
     }
 
     private playAnimation(name: string, milliseconds?: number, loop?: boolean): void {
@@ -291,8 +239,10 @@ export class Player {
                 this.spin = true;
                 this.facingSpin = this.facing;
             }
+            this.jumpTimer = this.game.time.totalElapsedSeconds() + 0.1;
             this.playSplashUp();
             this.jump();
+            this.ammo --;
         }
     }
 
@@ -307,6 +257,7 @@ export class Player {
             this.playSplashDown();
             this.stopSpin();
             this.isDown = true;
+            this.ammo = 8;
             // if (this.sprite.body.velocity.x != 0 && !this.rebote) {
             //     this.jump(150);
             //     this.rebote = true;
